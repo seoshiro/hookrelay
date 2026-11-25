@@ -15,7 +15,7 @@ type Tab = (typeof TABS)[number];
 const ASIDE: Record<Tab, string> = {
   Sandbox: 'A public sandbox on a real Postgres queue. Send a payment, break the receiver, watch retries settle into the dead-letter queue, then replay.',
   'Live stream': 'Every status change arrives over Server-Sent Events the moment the worker commits it. Pause the stream to read without the table moving.',
-  Analytics: 'Aggregated straight from delivery attempts in Postgres over the last thirty minutes. Nothing here is sampled or estimated.',
+  Analytics: 'Aggregated straight from delivery attempts in Postgres over the last fifteen minutes, in thirty-second buckets. Nothing is sampled or estimated.',
 };
 
 export function DashboardPage() {

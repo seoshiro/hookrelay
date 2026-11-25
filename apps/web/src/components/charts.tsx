@@ -30,17 +30,24 @@ export function DotMatrix({ values, rows = 6, label }: { values: number[]; rows?
   );
 }
 
+/** Step line over time buckets. A 0 bucket means "no traffic", so it is drawn as a gap, never as 0 ms. */
 export function StepLine({ values, label, height = 72 }: { values: number[]; label: string; height?: number }) {
   const data = values.length ? values : [0];
   const max = Math.max(...data, 1);
   const w = 300;
   const step = w / data.length;
   const y = (v: number) => height - 10 - (v / max) * (height - 22);
-  const points = data.flatMap((v, i) => [`${i * step},${y(v)}`, `${(i + 1) * step},${y(v)}`]).join(' ');
+  const d = data
+    .map((v, i) => {
+      if (v <= 0) return '';
+      const prev = data[i - 1] ?? 0;
+      return `${prev > 0 ? 'L' : 'M'}${i * step},${y(v)} H${(i + 1) * step}`;
+    })
+    .join(' ');
   return (
     <svg role="img" aria-label={label} viewBox={`0 0 ${w} ${height}`} preserveAspectRatio="none" className="w-full" style={{ height }}>
       <line x1="0" x2={w} y1={height - 4} y2={height - 4} stroke="var(--color-faint)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-      <polyline fill="none" stroke="var(--color-ink)" strokeWidth="1.5" points={points} vectorEffect="non-scaling-stroke" />
+      {d && <path d={d} fill="none" stroke="var(--color-ink)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />}
     </svg>
   );
 }

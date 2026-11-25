@@ -9,6 +9,7 @@ export const router = createBrowserRouter([
   { path: '/', element: <HeroPage /> },
   {
     lazy: page(() => import('./features/console/ConsoleLayout.tsx').then((m) => ({ default: m.ConsoleLayout }))),
+    hydrateFallbackElement: <div className="min-h-dvh bg-bg" aria-busy="true" />,
     children: [
       { path: '/dashboard', lazy: page(() => import('./features/dashboard/DashboardPage.tsx').then((m) => ({ default: m.DashboardPage }))) },
       { path: '/events', lazy: page(() => import('./features/inspector/InspectorPage.tsx').then((m) => ({ default: m.InspectorPage }))) },

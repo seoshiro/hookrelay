@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
-import { EVENT_STATUSES, type EventStatus, type EventSummary } from '@hookrelay/shared';
+import type { EventStatus, EventSummary } from '@hookrelay/shared';
+import { EVENT_STATUSES } from '@hookrelay/shared/constants';
 import { useConsole } from '../../store/console.ts';
 import { clock, statusTone } from '../../lib/format.ts';
 import { Empty } from '../../components/ui.tsx';
@@ -39,14 +40,14 @@ export function EventList({ events, loading, selectedId }: { events: EventSummar
                 <Link
                   to={`/events/${e.id}`}
                   aria-current={active ? 'true' : undefined}
-                  className={`hairline grid grid-cols-[10px_1fr_auto] items-baseline gap-3 border-b px-3 py-3.5 transition-colors ${active ? 'bg-ink text-bg' : 'hover:bg-surface'}`}
+                  className={`hairline relative grid grid-cols-[10px_1fr_auto] items-baseline gap-3 border-b px-3 py-3.5 transition-colors ${active ? 'bg-surface before:absolute before:inset-y-0 before:left-0 before:w-px before:bg-accent' : 'hover:bg-surface/60'}`}
                 >
-                  <span aria-hidden className={`size-1.5 translate-y-[-2px] rounded-full bg-current ${active ? '' : statusTone[e.status]}`} />
+                  <span aria-hidden className={`size-1.5 translate-y-[-2px] rounded-full bg-current ${statusTone[e.status]}`} />
                   <span className="min-w-0">
                     <span className="num block truncate text-[12px]">{e.id}</span>
-                    <span className={`block truncate text-[13px] ${active ? 'text-bg/70' : 'text-muted'}`}>{e.eventType}</span>
+                    <span className={`block truncate text-[13px] ${active ? 'text-ink' : 'text-muted'}`}>{e.eventType}</span>
                   </span>
-                  <span className={`num text-[11px] ${active ? 'text-bg/70' : 'text-faint'}`}>{clock(e.createdAt)}</span>
+                  <span className="num text-[11px] text-faint">{clock(e.createdAt)}</span>
                 </Link>
               </li>
             );

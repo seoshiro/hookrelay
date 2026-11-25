@@ -1,4 +1,5 @@
-import { EVENT_STATUSES, type EventStatus } from '@hookrelay/shared';
+import type { EventStatus } from '@hookrelay/shared';
+import { EVENT_STATUSES } from '@hookrelay/shared/constants';
 import { useConsole } from '../../store/console.ts';
 
 export function StreamControls({ showFilter }: { showFilter: boolean }) {

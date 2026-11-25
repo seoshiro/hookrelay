@@ -23,7 +23,7 @@ export function EditorialTabs<T extends string>({ tabs, value, onChange, label }
           tabIndex={t === value ? 0 : -1}
           onKeyDown={(e) => move(e, i)}
           onClick={() => onChange(t)}
-          className={`display text-[clamp(40px,5.4vw,72px)] transition-colors duration-300 ${t === value ? 'text-ink' : 'text-faint hover:text-muted'}`}
+          className={`display text-[clamp(38px,4.6vw,66px)] whitespace-nowrap transition-colors duration-300 ${t === value ? 'text-ink' : 'text-faint hover:text-muted'}`}
         >
           {t}
         </button>

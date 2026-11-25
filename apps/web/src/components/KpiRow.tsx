@@ -4,31 +4,38 @@ import { pct } from '../lib/format.ts';
 
 const placeholder = (n: number) => Array.from({ length: n }, () => 0);
 
+function columnEdge(index: number, compact: boolean): string {
+  if (index > 0) return compact ? 'border-l' : 'border-t md:border-t-0 md:border-l';
+  return compact ? '' : 'md:pl-0';
+}
+
 /** Three editorial columns: delivery rate, throughput, latency. Used on the dashboard and in the hero preview. */
 export function KpiRow({ data, compact = false }: { data: MetricsSummary | undefined; compact?: boolean }) {
   const throughput = data?.throughput ?? placeholder(30);
-  const perMin = throughput.slice(-5).reduce((a, b) => a + b, 0) / 5;
+  // attempts per minute over the last two minutes of 30-second buckets
+  const perMin = throughput.slice(-4).reduce((a, b) => a + b, 0) / 2;
+  const latency = (data?.latencyBuckets ?? []).slice(-12);
   const cols = [
     {
       label: 'Delivery rate',
-      unit: '30 min',
+      unit: '15 min',
       value: data ? pct(data.successRate) : '—',
       suffix: '%',
-      chart: <ThinBars values={throughput} label="Delivery attempts per minute, last 30 minutes" />,
+      chart: <ThinBars values={throughput} label="Delivery attempts per 30 seconds, last 15 minutes" />,
     },
     {
       label: 'Queue throughput',
       unit: 'attempts / min',
       value: data ? perMin.toFixed(perMin >= 10 ? 0 : 1) : '—',
       suffix: '/m',
-      chart: <DotMatrix values={throughput.slice(-24)} label="Queue throughput, last 24 minutes" />,
+      chart: <DotMatrix values={throughput.slice(-24)} label="Queue throughput per 30 seconds, last 12 minutes" />,
     },
     {
       label: 'Latency p95',
       unit: `p50 ${data?.p50 ?? 0} ms`,
       value: data ? String(data.p95) : '—',
       suffix: 'ms',
-      chart: <StepLine values={(data?.latencyBuckets ?? placeholder(30)).slice(-10)} label="Average delivery latency per minute" />,
+      chart: <StepLine values={latency} label="Average delivery latency per 30 seconds, last 6 minutes; gaps mean no traffic" />,
     },
   ];
   return (
@@ -36,7 +43,7 @@ export function KpiRow({ data, compact = false }: { data: MetricsSummary | undef
       {cols.map((c, i) => (
         <div
           key={c.label}
-          className={`hairline flex flex-col gap-5 ${compact ? 'gap-4 px-3 py-5 sm:px-5' : 'py-7 md:px-8'} ${i > 0 ? (compact ? 'border-l' : 'border-t md:border-t-0 md:border-l') : compact ? '' : 'md:pl-0'}`}
+          className={`hairline flex flex-col gap-5 ${compact ? 'gap-4 px-3 py-5 sm:px-5' : 'py-7 md:px-8'} ${columnEdge(i, compact)}`}
         >
           <div className="flex items-baseline justify-between gap-3">
             <span className="label">{c.label}</span>

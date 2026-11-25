@@ -16,11 +16,11 @@ export function QueueHealth() {
       <SerifHeading>Postgres queue</SerifHeading>
       <div className="grid gap-8 md:grid-cols-[1fr_auto]">
         <div className="flex flex-col gap-3">
-          <span className="label">Attempts per minute · last 30 min</span>
-          <ThinBars values={s?.throughput ?? Array(30).fill(0)} height={120} label="Queue throughput per minute" />
+          <span className="label">Attempts per 30 s · last 15 min</span>
+          <ThinBars values={s?.throughput ?? Array(30).fill(0)} height={120} label="Queue throughput per 30 seconds" />
           <div className="num flex justify-between text-[11px] text-faint">
-            <span>−30 min</span>
-            <span>−15</span>
+            <span>−15 min</span>
+            <span>−7.5</span>
             <span>now</span>
           </div>
         </div>

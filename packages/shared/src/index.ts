@@ -1,13 +1,13 @@
 import { z } from 'zod';
+import { EVENT_STATUSES, PROVIDERS, SCENARIOS } from './constants.ts';
 
-export const EVENT_STATUSES = ['PENDING', 'PROCESSING', 'DELIVERED', 'RETRYING', 'DLQ'] as const;
+export { EVENT_STATUSES, PROVIDERS, SCENARIOS };
+
 export const eventStatusSchema = z.enum(EVENT_STATUSES);
 export type EventStatus = z.infer<typeof eventStatusSchema>;
 
-export const PROVIDERS = ['stripe', 'github', 'telegram', 'custom'] as const;
 export const providerSchema = z.enum(PROVIDERS);
 
-export const SCENARIOS = ['ok_payment', 'fail_500_to_dlq', 'flaky_recover'] as const;
 export const scenarioSchema = z.enum(SCENARIOS);
 export type Scenario = z.infer<typeof scenarioSchema>;
 
@@ -95,6 +95,7 @@ export type StreamMessage =
 
 export interface MetricsSummary {
   windowMinutes: number;
+  bucketSec: number;
   throughput: number[];
   latencyBuckets: number[];
   p50: number;

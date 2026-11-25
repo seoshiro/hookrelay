@@ -1,1 +1,1 @@
-{ "extends": "../../tsconfig.base.json", "compilerOptions": { "noEmit": true, "module": "Preserve", "moduleResolution": "Bundler" }, "include": ["src"] }
+{ "extends": "../../tsconfig.base.json", "compilerOptions": { "noEmit": true, "module": "Preserve", "moduleResolution": "Bundler", "allowImportingTsExtensions": true }, "include": ["src"] }
