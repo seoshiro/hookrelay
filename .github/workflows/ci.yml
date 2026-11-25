@@ -26,8 +26,8 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hookrelay_test
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/hookrelay_test
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
@@ -63,8 +63,8 @@ jobs:
       INGEST_RATE_LIMIT_PER_MIN: '1000000'
       LOG_LEVEL: warn
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
@@ -78,7 +78,7 @@ jobs:
       - uses: grafana/setup-k6-action@v1
       - name: k6 ingest (50 VUs, 30s)
         run: k6 run --summary-export=k6-summary.json loadtest/ingest.js
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: k6-summary
           path: k6-summary.json

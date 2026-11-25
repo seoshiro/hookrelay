@@ -6,7 +6,8 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
   METRICS_TOKEN: z.string().min(8),
-  FRONTEND_URL: z.url(),
+  // comma-separated: a Vercel project answers on several hostnames
+  FRONTEND_URL: z.string().transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)).pipe(z.array(z.url()).min(1)),
   ALLOW_LOCALHOST_ORIGINS: z.stringbool().default(false),
   PUBLIC_API_URL: z.url().default('http://localhost:8080'),
   WORKER_ENABLED: z.stringbool().default(true),

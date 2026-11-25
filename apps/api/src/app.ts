@@ -39,7 +39,7 @@ declare module 'fastify' {
 
 export function allowedOrigin(env: Env, origin: string | undefined): boolean {
   if (!origin) return true; // same-origin, curl, server-to-server
-  if (origin === env.FRONTEND_URL) return true;
+  if (env.FRONTEND_URL.includes(origin)) return true;
   return env.ALLOW_LOCALHOST_ORIGINS && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 }
 
