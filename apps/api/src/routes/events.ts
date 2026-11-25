@@ -8,6 +8,9 @@ import { canAccess, resolveScope } from '../lib/scope.ts';
 import { eventInclude, toAttempt, toSummary } from '../lib/serialize.ts';
 import type { Prisma } from '../generated/prisma/client.ts';
 
+/** Header that makes the in-process sandbox receiver succeed on replay. */
+export const HEALTHY_RECEIVER = { 'x-sandbox-receiver': 'healthy' };
+
 /** Puts events back on the queue with a fresh attempt budget, in one statement. */
 export async function requeue(ctx: AppContext, where: Prisma.WebhookEventWhereInput, extraHeaders?: Record<string, string>): Promise<string[]> {
   const targets = await ctx.db.webhookEvent.findMany({ where, select: { id: true, headers: true }, take: 500 });
@@ -80,7 +83,7 @@ export async function eventRoutes(app: FastifyInstance, ctx: AppContext) {
     const e = await ctx.db.webhookEvent.findUnique({ where: { id }, select: { status: true, source: { select: { isSandbox: true, userId: true } } } });
     if (!e || !canAccess(e.source, viewer?.userId)) throw new HttpError(404, 'Event not found', 'not_found');
     if (e.status === 'PROCESSING') throw new HttpError(409, 'Event is being delivered right now', 'in_flight');
-    await requeue(ctx, { id }, e.source.isSandbox ? { 'x-sandbox-receiver': 'healthy' } : undefined);
+    await requeue(ctx, { id }, e.source.isSandbox ? HEALTHY_RECEIVER : undefined);
     return reply.status(202).send({ eventId: id, status: 'PENDING' });
   });
 
@@ -92,7 +95,7 @@ export async function eventRoutes(app: FastifyInstance, ctx: AppContext) {
     const ids = await requeue(
       ctx,
       { status: 'DLQ', source: sourceWhere, ...(body.all ? {} : { id: { in: body.eventIds! } }) },
-      isSandbox ? { 'x-sandbox-receiver': 'healthy' } : undefined,
+      isSandbox ? HEALTHY_RECEIVER : undefined,
     );
     return reply.status(202).send({ replayed: ids.length, eventIds: ids });
   });

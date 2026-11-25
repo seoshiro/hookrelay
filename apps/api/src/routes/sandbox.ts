@@ -6,7 +6,7 @@ import type { AppContext } from '../app.ts';
 import { generateSecret } from '../security/hmac.ts';
 import { SANDBOX_RECEIVER_PATH } from '../queue/sandboxReceiver.ts';
 import { enqueue } from './ingest.ts';
-import { requeue } from './events.ts';
+import { HEALTHY_RECEIVER, requeue } from './events.ts';
 import { sourceView } from './sources.ts';
 
 export const SANDBOX_INGEST_KEY = 'src_sbx_public';
@@ -77,7 +77,7 @@ export async function sandboxRoutes(app: FastifyInstance, ctx: AppContext) {
 
   app.post('/api/sandbox/replay-all', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (_req, reply) => {
     // replays flip the receiver to healthy so the visitor sees recovery, not the same failure again
-    const ids = await requeue(ctx, { status: 'DLQ', source: { isSandbox: true } }, { 'x-sandbox-receiver': 'healthy' });
+    const ids = await requeue(ctx, { status: 'DLQ', source: { isSandbox: true } }, HEALTHY_RECEIVER);
     return reply.status(202).send({ replayed: ids.length, eventIds: ids });
   });
 }

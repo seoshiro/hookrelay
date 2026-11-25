@@ -41,6 +41,12 @@ export async function recoverStuck(db: Db, olderThanSec = 60): Promise<number> {
     WHERE status = 'PROCESSING' AND "lockedAt" < NOW() - make_interval(secs => ${olderThanSec})`;
 }
 
+function outcomeStatus(ok: boolean, exhausted: boolean): 'DELIVERED' | 'DLQ' | 'RETRYING' {
+  if (ok) return 'DELIVERED';
+  if (exhausted) return 'DLQ';
+  return 'RETRYING';
+}
+
 export async function processEvent(deps: WorkerDeps, id: string): Promise<void> {
   const { db, bus, metrics } = deps;
   const event = await db.webhookEvent.findUnique({
@@ -65,7 +71,7 @@ export async function processEvent(deps: WorkerDeps, id: string): Promise<void> 
 
   const ok = result.category === 'ok';
   const exhausted = !ok && attemptNumber >= event.maxAttempts;
-  const status = ok ? 'DELIVERED' : exhausted ? 'DLQ' : 'RETRYING';
+  const status = outcomeStatus(ok, exhausted);
   const now = new Date();
   const nextAttemptAt = ok || exhausted ? now : new Date(now.getTime() + nextDelayMs(attemptNumber, { sandbox: event.source.isSandbox }));
 

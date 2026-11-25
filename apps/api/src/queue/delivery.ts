@@ -58,22 +58,31 @@ export const deliverHttp: Deliver = async ({ url, headers, body, timeoutMs }) =>
     });
     const text = await readCapped(res.body);
     const status = res.statusCode;
-    const category = status < 300 ? 'ok' : status < 400 ? 'redirect' : status < 500 ? 'client4xx' : 'upstream5xx';
+    const category = httpCategory(status);
     return { status, body: text, latencyMs: elapsed(), error: category === 'ok' ? null : `HTTP ${status}`, category };
   } catch (err) {
-    const e = err as Error & { code?: string; cause?: unknown };
-    const ssrf = e instanceof SsrfError || e.cause instanceof SsrfError;
-    const timeout = e.name === 'TimeoutError' || e.code === 'UND_ERR_HEADERS_TIMEOUT' || e.code === 'UND_ERR_BODY_TIMEOUT';
-    const dns = e.code === 'ENOTFOUND' || e.code === 'EAI_AGAIN';
-    return {
-      status: null,
-      body: '',
-      latencyMs: elapsed(),
-      error: ssrf ? `SSRF guard: ${(e.cause instanceof SsrfError ? e.cause : e).message}` : timeout ? `Timed out after ${timeoutMs}ms` : e.message,
-      category: ssrf || dns ? 'ssrfDns' : timeout ? 'timeout' : 'network',
-    };
+    return { status: null, body: '', latencyMs: elapsed(), ...describeFailure(err, timeoutMs) };
   }
 };
+
+function httpCategory(status: number): DeliveryResult['category'] {
+  if (status < 300) return 'ok';
+  if (status < 400) return 'redirect';
+  if (status < 500) return 'client4xx';
+  return 'upstream5xx';
+}
+
+function describeFailure(err: unknown, timeoutMs: number): Pick<DeliveryResult, 'error' | 'category'> {
+  const e = err as Error & { code?: string; cause?: unknown };
+  if (e instanceof SsrfError || e.cause instanceof SsrfError) {
+    return { error: `SSRF guard: ${(e.cause instanceof SsrfError ? e.cause : e).message}`, category: 'ssrfDns' };
+  }
+  const timeout = e.name === 'TimeoutError' || e.code === 'UND_ERR_HEADERS_TIMEOUT' || e.code === 'UND_ERR_BODY_TIMEOUT';
+  const dns = e.code === 'ENOTFOUND' || e.code === 'EAI_AGAIN';
+  const error = timeout ? `Timed out after ${timeoutMs}ms` : e.message;
+  if (dns) return { error, category: 'ssrfDns' };
+  return { error, category: timeout ? 'timeout' : 'network' };
+}
 
 async function readCapped(stream: AsyncIterable<Buffer>): Promise<string> {
   const chunks: Buffer[] = [];

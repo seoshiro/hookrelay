@@ -42,6 +42,11 @@ async function checkTarget(url: string) {
   }
 }
 
+async function assertTargetAllowed(url: string): Promise<void> {
+  const check = await checkTarget(url);
+  if (!check.ok) throw new HttpError(422, check.message, `ssrf_${check.code.toLowerCase()}`);
+}
+
 const idParam = z.object({ id: z.string().min(1) });
 
 export async function sourceRoutes(app: FastifyInstance, ctx: AppContext) {
@@ -65,8 +70,7 @@ export async function sourceRoutes(app: FastifyInstance, ctx: AppContext) {
   app.post('/api/sources', async (req, reply) => {
     const viewer = await requireViewer(req, ctx.db, 'admin');
     const body = createSourceSchema.parse(req.body);
-    const check = await checkTarget(body.targetUrl);
-    if (!check.ok) throw new HttpError(422, check.message, `ssrf_${check.code.toLowerCase()}`);
+    await assertTargetAllowed(body.targetUrl);
     const source = await ctx.db.source.create({
       data: {
         userId: viewer.userId,
@@ -86,10 +90,7 @@ export async function sourceRoutes(app: FastifyInstance, ctx: AppContext) {
     const { id } = idParam.parse(req.params);
     const body = updateSourceSchema.parse(req.body);
     const source = await owned(viewer.userId, id);
-    if (body.targetUrl) {
-      const check = await checkTarget(body.targetUrl);
-      if (!check.ok) throw new HttpError(422, check.message, `ssrf_${check.code.toLowerCase()}`);
-    }
+    if (body.targetUrl) await assertTargetAllowed(body.targetUrl);
     const { name, ...endpoint } = body;
     const updated = await ctx.db.source.update({
       where: { id: source.id },
