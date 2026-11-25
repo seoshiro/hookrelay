@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.env.local
+*.log
+coverage
+apps/api/src/generated
+apps/api/.pg-data
+playwright-report
+test-results
+# local-only working material
+design/
+.impeccable/
+.claude/
+CLAUDE.md
+AGENTS.md

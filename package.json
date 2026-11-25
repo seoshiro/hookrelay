@@ -1,0 +1,29 @@
+{
+  "name": "hookrelay",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev:db": "node apps/api/scripts/dev-db.mjs",
+    "dev:api": "npm run dev -w @hookrelay/api",
+    "dev:web": "npm run dev -w @hookrelay/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "migrate:deploy": "npm run migrate:deploy -w @hookrelay/api"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "allowScripts": {
+    "prisma@7.10.1": true,
+    "@prisma/engines@7.10.1": true,
+    "esbuild@0.27.7": true,
+    "esbuild@0.28.2": true,
+    "@embedded-postgres/windows-x64@18.7.0-beta.19": true,
+    "sharp@0.35.5": true
+  }
+}
