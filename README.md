@@ -7,7 +7,12 @@ HookRelay sits between a webhook sender (Stripe, GitHub, Telegram, a CRM, a paym
 - **Live demo:** _added after deployment_
 - **Public sandbox:** open the console, press `Simulate 500 → DLQ`, watch three attempts fail in real time over SSE, then `Replay all DLQ` and watch them recover.
 
-<!-- screenshots: docs/hero.png, docs/dashboard.png, docs/inspector.png, docs/dlq.png, docs/endpoints.png -->
+![HookRelay landing page: a sepia mountain range behind the headline "Deliver every webhook with quiet, unbreakable precision", with a live console window rising from the bottom](docs/hero.webp)
+
+| | |
+|---|---|
+| ![Sandbox dashboard with delivery rate, throughput dot matrix, p95 latency and the live events table](docs/dashboard.webp) | ![Event inspector showing a 502, a 500 and a 200 OK attempt on one event, with the signed payload](docs/inspector.webp) |
+| ![Dead letter queue with failure causes, selectable events and the last response body](docs/dlq.webp) | ![Endpoints screen with the ingestion URL, live SSRF check, retry schedule, signing secret and queue health](docs/endpoints.webp) |
 
 ## What it does
 
