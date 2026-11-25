@@ -1,0 +1,97 @@
+@import 'tailwindcss';
+@import '@fontsource/cormorant-garamond/400.css';
+@import '@fontsource/cormorant-garamond/400-italic.css';
+@import '@fontsource/cormorant-garamond/500.css';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+@theme {
+  --color-bg: #17140f;
+  --color-surface: #1e1a15;
+  --color-sunken: #110f0c;
+  --color-ink: #ece4d6;
+  --color-muted: #9a8f80;
+  --color-faint: #6b6257;
+  --color-accent: #c08a5b;
+  --color-ok: #8fa68a;
+  --color-retry: #c9a06a;
+  --color-dlq: #b8675c;
+  --color-line: rgb(236 228 214 / 0.09);
+  --color-line-strong: rgb(236 228 214 / 0.18);
+
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --radius-none: 0;
+  --ease-quiet: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* micro-label: the editorial meta line (01 / 04 — SANDBOX, ISS. 01 · 2026) */
+  .label {
+    font: 500 11px/1 var(--font-sans);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  .display {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+  }
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .link-quiet {
+    border-bottom: 1px solid var(--color-line-strong);
+    padding-bottom: 3px;
+    transition: border-color 200ms var(--ease-quiet);
+  }
+  .link-quiet:hover {
+    border-color: var(--color-ink);
+  }
+  .hairline {
+    border-color: var(--color-line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
