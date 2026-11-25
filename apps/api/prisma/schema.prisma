@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum EventStatus {
+  PENDING
+  PROCESSING
+  DELIVERED
+  RETRYING
+  DLQ
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  apiKeys      ApiKey[]
+  sources      Source[]
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  prefix     String
+  keyHash    String    @unique
+  scopes     String[]
+  lastUsedAt DateTime? @db.Timestamptz(3)
+  revokedAt  DateTime? @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([userId])
+}
+
+model Source {
+  id            String         @id @default(cuid())
+  userId        String?
+  user          User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  provider      String         @default("custom")
+  ingestKey     String         @unique
+  signingSecret String
+  isSandbox     Boolean        @default(false)
+  createdAt     DateTime       @default(now()) @db.Timestamptz(3)
+  endpoints     Endpoint[]
+  events        WebhookEvent[]
+
+  @@index([userId])
+}
+
+model Endpoint {
+  id               String         @id @default(cuid())
+  sourceId         String
+  source           Source         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  targetUrl        String
+  maxAttempts      Int            @default(5)
+  timeoutMs        Int            @default(5000)
+  enabled          Boolean        @default(true)
+  telegramBotToken String?
+  telegramChatId   String?
+  createdAt        DateTime       @default(now()) @db.Timestamptz(3)
+  events           WebhookEvent[]
+
+  @@index([sourceId])
+}
+
+model WebhookEvent {
+  id             String            @id
+  sourceId       String
+  source         Source            @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  endpointId     String
+  endpoint       Endpoint          @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  idempotencyKey String?
+  eventType      String
+  headers        Json
+  payload        Json
+  rawBody        String
+  status         EventStatus       @default(PENDING)
+  attemptCount   Int               @default(0)
+  maxAttempts    Int               @default(5)
+  nextAttemptAt  DateTime          @default(now()) @db.Timestamptz(3)
+  lockedAt       DateTime?         @db.Timestamptz(3)
+  lastError      String?
+  lastStatusCode Int?
+  lastLatencyMs  Int?
+  deliveredAt    DateTime?         @db.Timestamptz(3)
+  createdAt      DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @db.Timestamptz(3)
+  attempts       DeliveryAttempt[]
+
+  @@unique([sourceId, idempotencyKey])
+  @@index([status, nextAttemptAt])
+  @@index([sourceId, createdAt])
+}
+
+model DeliveryAttempt {
+  id             String       @id @default(cuid())
+  eventId        String
+  event          WebhookEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  attemptNumber  Int
+  requestHeaders Json
+  responseStatus Int?
+  responseBody   String       @default("")
+  latencyMs      Int
+  errorMessage   String?
+  createdAt      DateTime     @default(now()) @db.Timestamptz(3)
+
+  @@index([eventId])
+  @@index([createdAt])
+}
