@@ -4,7 +4,7 @@
 
 HookRelay sits between a webhook sender (Stripe, GitHub, Telegram, a CRM, a payment gateway) and your backend. It accepts the request in milliseconds, stores it, signs it, delivers it with exponential backoff, keeps every attempt, parks what still fails in a dead-letter queue, and lets you replay it with one click.
 
-- **Live demo:** _added after deployment_
+- **Live demo:** https://hookrelay-mu.vercel.app — API on Render (`https://hookrelay-api-w3w2.onrender.com/api/health`), database on Neon. The free Render instance sleeps after 15 idle minutes, so the first request can take ~30 s.
 - **Public sandbox:** open the console, press `Simulate 500 → DLQ`, watch three attempts fail in real time over SSE, then `Replay all DLQ` and watch them recover.
 
 ![HookRelay landing page: a sepia mountain range behind the headline "Deliver every webhook with quiet, unbreakable precision", with a live console window rising from the bottom](docs/hero.webp)
@@ -79,7 +79,13 @@ All numbers below were measured, not estimated. Hardware: Windows 11 laptop, Nod
 
 **Concurrency** — two API processes draining the same table at once delivered 15,127 events with **0 duplicate successful deliveries** (checked with `GROUP BY "eventId" HAVING count(*) > 1` on successful attempts). The integration suite asserts the same property on every CI run.
 
-The k6 scenario in [`loadtest/ingest.js`](loadtest/ingest.js) runs in the `loadtest` CI job against Postgres 16 and uploads its summary as an artifact.
+**k6 in CI** — [`loadtest/ingest.js`](loadtest/ingest.js), 50 VUs for 30 s on a GitHub Actions `ubuntu-latest` runner against Postgres 16 (`loadtest` job, summary uploaded as an artifact):
+
+| requests | failed | req/s | p50 | p90 | p95 | max |
+|---|---|---|---|---|---|---|
+| 26,289 | 0 | 875.4 | 50.6 ms | 70.4 ms | 86.4 ms | 591 ms |
+
+Thresholds `http_req_failed < 1%` and `p(95) < 250 ms` gate the job.
 
 ## Tests
 
@@ -120,6 +126,11 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:54329/hookrelay_test 
 | GET | `/api/metrics/summary` | throughput, p50/p95, success rate, DLQ causes |
 | GET/POST/DELETE | `/api/api-keys[/:id]` | `hr_live_…`, shown once, stored as SHA-256 |
 | POST | `/api/sandbox/simulate`, `/api/sandbox/replay-all` | public sandbox |
+
+## Known limits of the free deployment
+
+- The API (`onrender.com`) and the console (`vercel.app`) are different sites, so the session cookie is third-party (`SameSite=None; Secure`). Browsers that block third-party cookies (Safari, Chrome incognito) will not keep you signed in; the public sandbox needs no account and is unaffected. A custom domain for both, or a same-origin proxy, removes this.
+- One free Render instance runs both the API and the worker and sleeps when idle; queued events resume on wake-up.
 
 ## At 100× the load
 
